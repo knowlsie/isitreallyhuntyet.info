@@ -194,12 +194,25 @@ Is it *really* hunt yet?
 
 <script type="text/javascript">
 
-function pad(x) {
-var s = x.toString();
-if(s.length == 1) {
-return "0" + s;
+var huntTimes = [new Date('16 Jan 1981, 12:00:00 EST')];
+console.log("Welcome to the console, hunter! Here are the first 150 hunt times:")
+console.log(huntTimes);
+
+while (huntTimes.length < 150) {
+    var lastDate = new Date(huntTimes[huntTimes.length - 1]);
+    var newDate = new Date(lastDate.getTime() + 364 * 24 * 60 * 60 * 1000);
+    if (newDate.getDate() < 12) {
+        newDate = new Date(newDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+    }
+    huntTimes.push(newDate);
 }
-return s;
+
+function pad(x) {
+    var s = x.toString();
+    if(s.length == 1) {
+        return "0" + s;
+    }
+    return s;
 }
 
 kk_state = 0
@@ -223,14 +236,14 @@ reset_joke()
 function getkk() {
     s = ""
     if (kk_state >= 0) {
-	s += "Knock Knock<br/>";
+	    s += "Knock Knock<br/>";
     }
     if (kk_state >= 1) {
-	s += "Who's there?<br/>"
-	s += line_1 + "<br/>"
+	    s += "Who's there?<br/>"
+	    s += line_1 + "<br/>"
     }
     if (kk_state >= 2) {
-	s += line_1 + " who?<br/>"
+	    s += line_1 + " who?<br/>"
         s += punchline + "<br/>"
     }
     return s
@@ -251,37 +264,47 @@ function getkk_button() {
 
 function show() {
     var now = new Date();
-    var huntTime = new Date("17 Jan 2025, 12:00:00 EST");
-    var endTime = new Date("20 Jan 2025, 12:00:00 EST");
+    for (huntTime of huntTimes) {
+        var endTime = new Date(huntTime.getTime() + 3 * 24 * 60 * 60 * 1000)
+        var weekAfterEndTime = new Date(endTime.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    var question = document.getElementById("question");
-    var txt = document.getElementById("txt");
-    var timer = document.getElementById("timer");
+        if (now >= weekAfterEndTime) {
+            continue;
+        }
 
-    if (now >= endTime) {
+        var question = document.getElementById("question");
+        var txt = document.getElementById("txt");
+        var timer = document.getElementById("timer");
+
+        if (now >= endTime) {
+            question.innerHTML = "NO";
+            txt.innerHTML = "";
+            timer.innerHTML = `${huntTime.getFullYear()} hunt is over.  See you next year!`;
+            return;
+        }
+
+        if (now >= huntTime) {
+            question.innerHTML = "YES!";
+            txt.innerHTML = getkk();
+            timer.innerHTML = getkk_button();
+            return;
+        }
+
+        var elapsed_s = (huntTime - now) / 1000;
+        var elapsed_m = elapsed_s / 60;
+        var elapsed_h = elapsed_m / 60;
+        var elapsed_d = elapsed_h / 24;
+        
+        var floor = Math.floor;
+        
         question.innerHTML = "NO";
         txt.innerHTML = "";
-        timer.innerHTML = "2025 hunt is over.  See you next year!";
+        timer.innerHTML = floor(elapsed_d) + " days, " + pad(floor(elapsed_h)%24) + " hours, " + pad(floor(elapsed_m)%60) + " minutes, " + pad(floor(elapsed_s)%60) + " seconds";
         return;
     }
-
-    if (now >= huntTime) {
-        question.innerHTML = "YES!";
-        txt.innerHTML = getkk();
-        timer.innerHTML = getkk_button();
-        return;
-    }
-
-    var elapsed_s = (huntTime - now) / 1000;
-    var elapsed_m = elapsed_s / 60;
-    var elapsed_h = elapsed_m / 60;
-    var elapsed_d = elapsed_h / 24;
-    
-    var floor = Math.floor;
-    
-    question.innerHTML = "NO";
+    question.innerHTML = "I'M NOT SURE";
     txt.innerHTML = "";
-    timer.innerHTML = floor(elapsed_d) + " days, " + pad(floor(elapsed_h)%24) + " hours, " + pad(floor(elapsed_m)%60) + " minutes, " + pad(floor(elapsed_s)%60) + " seconds";
+    timer.innerHTML = "It's either >= 2130 or the code broke";
 }
 
 window.setInterval(show, 500);
